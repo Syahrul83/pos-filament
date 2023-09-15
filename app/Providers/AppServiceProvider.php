@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use Filament\Facades\Filament;
 use Illuminate\Support\ServiceProvider;
+use Filament\Navigation\NavigationGroup;
 
 class AppServiceProvider extends ServiceProvider
 {

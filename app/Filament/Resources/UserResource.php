@@ -23,7 +23,15 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-user';
+
+
+    // recode title artibute
+    protected static ?string $recordTitleAttribute = 'name';
+
+    protected static ?string $navigationGroup = 'Setting';
+
+
 
     public static function form(Form $form): Form
     {
@@ -109,4 +117,18 @@ class UserResource extends Resource
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
+
+
+    //  filament global search arttribute
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'name',
+            'email'
+        ];
+    }
+
+
+
+
 }

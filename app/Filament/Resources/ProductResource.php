@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\ProductResource\RelationManagers\TagsRelationManager;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Product;
@@ -27,7 +28,11 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
+    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationGroup = 'App';
+
 
     protected static ?string $navigationLabel = 'Produk';
 
@@ -38,8 +43,7 @@ class ProductResource extends Resource
                 // make filament input text name, slug
                 TextInput::make('name')
                     ->required()
-
-                    ->unique()
+                    ->unique(ignoreRecord: true)
                     ->afterStateUpdated(fn(Set $set, ?string $state) => $set('slug', Str::slug($state)))
                     ->live(debounce: 1000),
 
@@ -55,6 +59,11 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('price')
                     ->rules('numeric')
                     ->required(),
+
+                // Select::make('tags')
+                //     ->multiple()
+                //     ->preload()
+                //     ->relationship('tags', 'name')
 
                 // Select::make('category')
                 //     ->options([
@@ -128,7 +137,7 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            TagsRelationManager::class
         ];
     }
 
@@ -139,5 +148,11 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
     }
 }
