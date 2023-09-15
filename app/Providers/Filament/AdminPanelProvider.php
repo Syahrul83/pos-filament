@@ -73,6 +73,8 @@ class AdminPanelProvider extends PanelProvider
                         ->label(fn(): string => __('Other'))
 
                         ->collapsed(),
+                ])->plugins([
+                    \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
                 ]);
     }
 }
