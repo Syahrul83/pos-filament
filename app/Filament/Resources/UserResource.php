@@ -2,19 +2,27 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\District;
+use App\Models\Villages;
 use Filament\Forms;
 use App\Models\User;
 use Filament\Tables;
+use App\Models\Regency;
+use Filament\Forms\Get;
+use App\Models\Province;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Hash;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Collection;
 use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\UserResource\RelationManagers;
@@ -39,6 +47,39 @@ class UserResource extends Resource
             ->schema([
                 TextInput::make('name')->required(),
                 TextInput::make('email')->required()->email(),
+                Select::make('province_id')
+                    ->options(Province::query()->pluck('name', 'id'))
+                    ->searchable()
+                    ->live(),
+
+                Select::make('regency_id')
+                    ->options(fn(Get $get): Collection => Regency::query()
+                        ->where('province_id', $get('province_id'))
+                        ->pluck('name', 'id'))
+                    ->searchable()
+                    ->live(),
+
+                Select::make('district_id')
+                    ->options(fn(Get $get): Collection => District::query()
+                        ->where('regency_id', $get('regency_id'))
+                        ->pluck('name', 'id'))
+                    ->searchable()
+                    ->live(),
+
+                Select::make('village_id')
+                    ->options(fn(Get $get): Collection => Villages::query()
+                        ->where('district_id', $get('district_id'))
+                        ->pluck('name', 'id'))
+                    ->searchable()
+                ,
+
+                TextInput::make('password')
+                    ->password()
+                    ->dehydrateStateUsing(fn($state) => Hash::make($state))
+                    ->dehydrated(fn($state) => filled($state))
+                    ->required(fn(string $context): bool => $context === 'create')
+
+
             ]);
     }
 
