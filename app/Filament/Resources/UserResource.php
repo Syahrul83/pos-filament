@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\District;
-use App\Models\Villages;
 use Filament\Forms;
 use App\Models\User;
 use Filament\Tables;
 use App\Models\Regency;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
+use App\Models\District;
 use App\Models\Province;
+use App\Models\Villages;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Illuminate\Support\Collection;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\Select;
@@ -22,7 +24,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Collection;
 use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\UserResource\RelationManagers;
@@ -50,19 +51,40 @@ class UserResource extends Resource
                 Select::make('province_id')
                     ->options(Province::query()->pluck('name', 'id'))
                     ->searchable()
+                    ->afterStateUpdated(
+
+                        function (Set $set) {
+                            $set('regency_id', null);
+                            $set('district_id', null);
+                            $set('village_id', null);
+                        }
+
+                    )
                     ->live(),
 
                 Select::make('regency_id')
-                    ->options(fn(Get $get): Collection => Regency::query()
-                        ->where('province_id', $get('province_id'))
-                        ->pluck('name', 'id'))
+                    ->options(
+                        fn(Get $get): Collection => Regency::query()
+                            ->where('province_id', $get('province_id'))
+                            ->pluck('name', 'id')
+                    )
+                    ->afterStateUpdated(
+                        function (Set $set) {
+
+                            $set('district_id', null);
+                            $set('village_id', null);
+                        }
+                    )
+                    ->live()
                     ->searchable()
-                    ->live(),
+                ,
 
                 Select::make('district_id')
                     ->options(fn(Get $get): Collection => District::query()
                         ->where('regency_id', $get('regency_id'))
                         ->pluck('name', 'id'))
+                    ->afterStateUpdated(fn(Set $set) => $set('village_id', null))
+
                     ->searchable()
                     ->live(),
 
@@ -72,6 +94,26 @@ class UserResource extends Resource
                         ->pluck('name', 'id'))
                     ->searchable()
                 ,
+
+                TextInput::make('baru')
+                    ->default(function (Get $get): Collection {
+                        $collection = new Collection();
+
+                        // Check for province ID
+                        if ($get('province_id')) {
+
+                            // Query regencies by ID
+                            $regencies = Regency::where('province_id', $get('province_id'))
+                                ->first();
+
+                            // Collect results
+                            $collection = collect($regencies);
+
+                        }
+
+                        // Return collection
+                        return $collection;
+                    }),
 
                 TextInput::make('password')
                     ->password()
