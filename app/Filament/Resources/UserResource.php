@@ -95,26 +95,6 @@ class UserResource extends Resource
                     ->searchable()
                 ,
 
-                TextInput::make('baru')
-                    ->default(function (Get $get): Collection {
-                        $collection = new Collection();
-
-                        // Check for province ID
-                        if ($get('province_id')) {
-
-                            // Query regencies by ID
-                            $regencies = Regency::where('province_id', $get('province_id'))
-                                ->first();
-
-                            // Collect results
-                            $collection = collect($regencies);
-
-                        }
-
-                        // Return collection
-                        return $collection;
-                    }),
-
                 TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
